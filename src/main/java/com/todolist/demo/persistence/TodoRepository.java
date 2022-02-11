@@ -11,5 +11,5 @@ import java.util.List;
 public interface TodoRepository extends JpaRepository<TodoEntity, String> {
 //    기본쿼리를 사용할 경우에는 아래처럼 작성 할 필요 없음
 //    @Query("select * from Todo t where t.userId = ?1")
-//    List<TodoEntity> findByUserId(String userId);
+    List<TodoEntity> findByUserId(String userId);
 }
