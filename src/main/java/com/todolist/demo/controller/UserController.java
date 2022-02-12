@@ -8,6 +8,8 @@ import com.todolist.demo.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,6 +23,8 @@ public class UserController {
     private UserService userService;
     @Autowired
     private TokenProvider tokenProvider;
+    // Bean
+    private PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @PostMapping("/signup")
     public ResponseEntity<?> registerUser(@RequestBody UserDTO userDTO) {
@@ -30,7 +34,7 @@ public class UserController {
             UserEntity user = UserEntity.builder()
                     .email(userDTO.getEmail())
                     .username(userDTO.getUsername())
-                    .password(userDTO.getPassword())
+                    .password(passwordEncoder.encode(userDTO.getPassword())) // 암호화한 패스워드 대입
                     .build();
             // 유저 저장
             UserEntity registeredUser =userService.create(user);
@@ -51,8 +55,8 @@ public class UserController {
 
     @PostMapping("/signin")
     public ResponseEntity<?> authenticate(@RequestBody UserDTO userDTO) {
-        // 이메일 패스워드 검증
-        UserEntity user = userService.getByCredentials(userDTO.getEmail(), userDTO.getPassword());
+        // 이메일 패스워드 검증 - 서비스에서 암호화한 패스워드로 비교
+        UserEntity user = userService.getByCredentials(userDTO.getEmail(), userDTO.getPassword(), passwordEncoder);
         if(user != null) {
             // 토큰 생성
             final String token = tokenProvider.create(user);
